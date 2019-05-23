@@ -2,6 +2,7 @@
 
 import smtplib
 from urllib2 import urlopen
+from os import popen
 from email.mime.text import MIMEText
 from email.header import Header
 
@@ -24,7 +25,9 @@ def getlastip():
     return lip
 
 def getexip():
-    return urlopen('http://1212.ip138.com/ic.asp').read()
+    return popen("curl https://api.ipify.org/").read()
+    #return popen("curl ifconfig.me").read()
+    #return urlopen('http://1212.ip138.com/ic.asp').read()
 
 def setlastip(ip):
     try:
@@ -41,7 +44,7 @@ class mailhandler:
     receivers = ['bolo809@126.com']
     mail_host = 'smtp.126.com'
     mail_pass = mail_passwd
-    
+
     def sendmail(self,message):
         try:
             smtpObj = smtplib.SMTP()
@@ -55,13 +58,20 @@ class mailhandler:
 
 if __name__ == '__main__':
     print "START"
-    
+
     exip=getexip()
     if getlastip() in exip:
         print "External IP is not changed yet."
         exit(666)
-    setlastip(exip[exip.index('[')+1:exip.index(']')])
-    
+    #setlastip(exip[exip.index('[')+1:exip.index(']')])
+    if exip == '':
+        print "Currently, Can't get external IP. will try later. skip this time."
+        exit(777)
+    updatenoip = popen("wget -q -O - --http-user=bolo809@126.com --http-password=liujian \"https://dynupdate.no-ip.com/nic/update?hostname=liujian.ddns.net&myip=%s\"" % exip.strip()).read()
+    print updatenoip
+    if updatenoip.startswith('good') or updatenoip.startswith('noch'):
+        setlastip(exip.strip())
+
     #send exip.
     message = MIMEText(exip, 'plain', 'utf-8')
     message['From'] = Header("RaspiKeeper", 'utf-8')
@@ -69,8 +79,8 @@ if __name__ == '__main__':
 
     subject = 'Raspi external IP report'
     message['Subject'] = Header(subject, 'utf-8')
-    
+
     mail=mailhandler()
     mail.sendmail(message.as_string())
-    
+
     print "Done"
