@@ -9,6 +9,9 @@ from email.header import Header
 #you need to update the following value.
 mail_user=""
 mail_passwd=""
+noip_user=""
+noip_password=""
+noip_domain=""
 
 if mail_user == "" or mail_passwd == "":
     print "Please modify this script with your mail account. Currently, support 126 mail.\n"
@@ -67,7 +70,7 @@ if __name__ == '__main__':
     if exip == '':
         print "Currently, Can't get external IP. will try later. skip this time."
         exit(777)
-    updatenoip = popen("wget -q -O - --http-user=bolo809@126.com --http-password=liujian \"https://dynupdate.no-ip.com/nic/update?hostname=liujian.ddns.net&myip=%s\"" % exip.strip()).read()
+    updatenoip = popen("wget -q -O - --http-user=%s --http-password=%s \"https://dynupdate.no-ip.com/nic/update?hostname=%s&myip=%s\"" % (noip_user, noip_password, noip_domain, exip.strip())).read()
     print updatenoip
     if updatenoip.startswith('good') or updatenoip.startswith('noch'):
         setlastip(exip.strip())
